@@ -25,7 +25,7 @@
 module timer(
     input logic             clk,
     input logic             rstn_i,
-    output logic [1:0]      interrupt_o,
+    output logic [1:0]      irq_o,
     wb_bus_t.slave          wb_bus
 );
 
@@ -40,7 +40,7 @@ begin
     timer_regs_n = timer_regs_q;
     // Timer
     timer_incr = 32'b0;
-    interrupt_o = 'b0;
+    irq_o = 'b0;
 
     // only operate if enabled
     if(timer_regs_q[`CFG][`ENABLE_BIT]) begin
@@ -50,13 +50,13 @@ begin
 
         // compare interrupt
         if(timer_regs_q[`TIMER] >= timer_regs_q[`CMP]) begin
-            interrupt_o[0] = 1'b1;
+            irq_o[0] = 1'b1;
             timer_regs_n[`TIMER] = 'b0;
         end
 
         // overflow interrupt
         if(timer_regs_q[`TIMER] > (timer_regs_q[`TIMER] + timer_incr))
-            interrupt_o[1] = 1'b1;
+            irq_o[1] = 1'b1;
     end
     
     // WB slave
@@ -84,7 +84,7 @@ begin
     end
 end
 
-always_ff @(posedge clk)
+always_ff @(posedge clk, negedge rstn_i)
 begin
     if(!rstn_i) begin
         timer_regs_q[`TIMER] <= 'b0;
