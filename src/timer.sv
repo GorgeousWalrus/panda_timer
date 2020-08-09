@@ -37,6 +37,7 @@ logic [31:0]    timer_incr;
 always_comb
 begin
     wb_bus.wb_ack = 1'b0;
+    wb_bus.wb_err = 1'b0;
     timer_regs_n = timer_regs_q;
     // Timer
     timer_incr = 32'b0;
@@ -62,7 +63,7 @@ begin
     // WB slave
     if(wb_bus.wb_cyc && wb_bus.wb_stb) begin
         wb_bus.wb_ack = 1'b1;
-        if(wb_bus.wb_adr > 32'h12)
+        if(wb_bus.wb_adr > 32'hc)
             // If the address is out of bounds, return error
             wb_bus.wb_err = 1'b1;
         else begin
