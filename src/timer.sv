@@ -33,6 +33,9 @@ logic [31:0]    timer_regs_q[3];
 logic [31:0]    timer_regs_n[3];
 
 logic [31:0]    timer_incr;
+logic [31:0]    timer_do;
+
+assign wb_bus.wb_dat_sm = timer_do;
 
 always_comb
 begin
@@ -42,6 +45,7 @@ begin
     // Timer
     timer_incr = 32'b0;
     irq_o = 'b0;
+    timer_do = 'b0;
 
     // only operate if enabled
     if(timer_regs_q[`CFG][`ENABLE_BIT]) begin
@@ -79,7 +83,7 @@ begin
                     timer_regs_n[wb_bus.wb_adr[3:2]][31:24] = wb_bus.wb_dat_ms[31:24];
             end else begin
                 // Reading (only supports full 32 bit reading)
-                wb_bus.wb_dat_sm = timer_regs_q[wb_bus.wb_adr[3:2]];
+                timer_do = timer_regs_q[wb_bus.wb_adr[3:2]];
             end
         end
     end
