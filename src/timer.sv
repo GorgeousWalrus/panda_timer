@@ -82,7 +82,7 @@ begin
     if(!apb_bus.PRESETn) begin
         timer_regs_q[`TIMER] <= 'b0;
         timer_regs_q[`CFG] <= 'b0;
-        timer_regs_q[`CMP] <= 'b0;
+        timer_regs_q[`CMP] <= 32'hffffffff;
     end else begin
         timer_regs_q[`TIMER] <= timer_regs_n[`TIMER];
         timer_regs_q[`CFG] <= timer_regs_n[`CFG];
