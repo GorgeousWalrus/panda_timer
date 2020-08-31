@@ -19,15 +19,21 @@
 //
 // ------------------------------------------------------------
 
-`include "timer_incl.sv"
-`ifndef APB_BUS_SV
-`include "apb_intf.sv"
-`endif
-
 module timer(
     output logic [1:0]      irq_o,
     apb_bus_t.slave         apb_bus
 );
+
+// registers
+localparam TIMER = 0;
+localparam CFG = 1;
+localparam CMP = 2;
+// CFG register bits
+// prescaler
+localparam PRSC_START = 11;
+localparam PRSC_END =   8;
+// Enable bit 
+localparam ENABLE_BIT = 0;
 
 logic [31:0]    timer_regs_q[3];
 logic [31:0]    timer_regs_n[3];
@@ -50,19 +56,19 @@ begin
     irq_o = 'b0;
 
     // only operate if enabled
-    if(timer_regs_q[`CFG][`ENABLE_BIT]) begin
+    if(timer_regs_q[CFG][ENABLE_BIT]) begin
         // timer increment
-        timer_incr = 32'b1 << timer_regs_q[`CFG][`PRSC_START:`PRSC_END];
-        timer_regs_n[`TIMER] = timer_regs_q[`TIMER] + timer_incr;
+        timer_incr = 32'b1 << timer_regs_q[CFG][PRSC_START:PRSC_END];
+        timer_regs_n[TIMER] = timer_regs_q[TIMER] + timer_incr;
 
         // compare interrupt
-        if(timer_regs_q[`TIMER] >= timer_regs_q[`CMP]) begin
+        if(timer_regs_q[TIMER] >= timer_regs_q[CMP]) begin
             irq_o[0] = 1'b1;
-            timer_regs_n[`TIMER] = 'b0;
+            timer_regs_n[TIMER] = 'b0;
         end
 
         // overflow interrupt
-        if(timer_regs_q[`TIMER] > (timer_regs_q[`TIMER] + timer_incr))
+        if(timer_regs_q[TIMER] > (timer_regs_q[TIMER] + timer_incr))
             irq_o[1] = 1'b1;
     end
     
@@ -80,13 +86,13 @@ end
 always_ff @(posedge apb_bus.PCLK, negedge apb_bus.PRESETn)
 begin
     if(!apb_bus.PRESETn) begin
-        timer_regs_q[`TIMER] <= 'b0;
-        timer_regs_q[`CFG] <= 'b0;
-        timer_regs_q[`CMP] <= 32'hffffffff;
+        timer_regs_q[TIMER] <= 'b0;
+        timer_regs_q[CFG] <= 'b0;
+        timer_regs_q[CMP] <= 32'hffffffff;
     end else begin
-        timer_regs_q[`TIMER] <= timer_regs_n[`TIMER];
-        timer_regs_q[`CFG] <= timer_regs_n[`CFG];
-        timer_regs_q[`CMP] <= timer_regs_n[`CMP];
+        timer_regs_q[TIMER] <= timer_regs_n[TIMER];
+        timer_regs_q[CFG] <= timer_regs_n[CFG];
+        timer_regs_q[CMP] <= timer_regs_n[CMP];
     end
 end
 
